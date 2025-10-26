@@ -1,5 +1,6 @@
 # custom files
 custom/
+.dev/
 
 # temp files directories
 cache/
