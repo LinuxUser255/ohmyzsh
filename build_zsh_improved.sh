@@ -98,10 +98,83 @@ build_zsh_from_source() {
         return 1
     fi
 
+    # Update dynamic linker cache
+    echo "[INFO] Updating dynamic linker cache..."
+    ldconfig
+
     # Verify installation
     if ! command -v zsh &>/dev/null; then
         echo "[ERROR] Zsh binary not found after installation"
         return 1
+    fi
+
+    # Fix module permissions
+    echo "[INFO] Fixing module permissions..."
+    local zsh_version
+    zsh_version=$(zsh --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+[^[:space:]]*' | head -1)
+    local module_paths=(
+        "/usr/lib/zsh/${zsh_version}"
+        "/usr/lib/zsh/${zsh_version}/zsh"
+        "/usr/lib64/zsh/${zsh_version}"
+        "/usr/lib64/zsh/${zsh_version}/zsh"
+        "/usr/share/zsh/${zsh_version}"
+    )
+    
+    for path in "${module_paths[@]}"; do
+        if [[ -d "$path" ]]; then
+            echo "[INFO] Setting permissions for $path"
+            chmod -R 755 "$path" 2>/dev/null
+            find "$path" -name "*.so" -exec chmod 755 {} \; 2>/dev/null
+        fi
+    done
+
+    # Verify zsh can load modules
+    echo "[INFO] Verifying zsh module loading..."
+    if ! zsh -c 'zmodload zsh/zle' 2>/dev/null; then
+        echo "[WARNING] Module loading test failed, attempting comprehensive fix..."
+        
+        # Get the actual module path from zsh
+        local actual_module_path
+        actual_module_path=$(zsh -c 'echo $MODULE_PATH' 2>/dev/null)
+        
+        # Also try to find module directories by searching for .so files
+        echo "[INFO] Searching for zsh module directories..."
+        local found_modules=false
+        for search_path in /usr/lib /usr/lib64 /usr/local/lib; do
+            if [[ -d "$search_path" ]]; then
+                while IFS= read -r -d '' so_file; do
+                    local dir=$(dirname "$so_file")
+                    echo "[INFO] Found modules in: $dir"
+                    echo "[INFO] Fixing permissions for $dir"
+                    chmod -R 755 "$dir"
+                    found_modules=true
+                done < <(find "$search_path" -path "*/zsh/*" -name "*.so" -print0 2>/dev/null)
+            fi
+        done
+        
+        if [[ "$found_modules" == false ]]; then
+            echo "[ERROR] No zsh modules found! Build may have failed."
+            echo "[INFO] Attempting rebuild with explicit module support..."
+            # Force rebuild modules
+            cd "$build_dir/zsh" && make install-modules 2>/dev/null
+        fi
+        
+        # Update ld cache again after permission fixes
+        ldconfig
+        
+        # Final test
+        if ! zsh -c 'zmodload zsh/zle' 2>/dev/null; then
+            echo "[ERROR] Module loading still fails."
+            echo "[INFO] Module path reported by zsh: $actual_module_path"
+            if [[ -n "$actual_module_path" ]]; then
+                echo "[INFO] Contents of module directory:"
+                ls -la "$actual_module_path/zsh/" 2>/dev/null || echo "  Directory not found"
+            fi
+        else
+            echo "[SUCCESS] Module loading works!"
+        fi
+    else
+        echo "[SUCCESS] Module loading verified"
     fi
 
     # Add to /etc/shells if not present
