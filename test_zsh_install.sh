@@ -107,7 +107,7 @@ if [[ -n "$MODULE_PATH" ]]; then
     
     # Check .so file permissions
     if [[ -d "$MODULE_PATH/zsh" ]]; then
-        for so_file in "$MODULE_PATH/zsh"/*.so 2>/dev/null; do
+        for so_file in "$MODULE_PATH/zsh"/*.so; do
             if [[ -f "$so_file" ]]; then
                 base_name=$(basename "$so_file")
                 run_test "Permissions for $base_name" "test -r '$so_file' && test -x '$so_file'"
