@@ -31,15 +31,21 @@ if [[ -f ~/.zshrc ]]; then
     
     echo "Compiling enabled plugin files: ${ENABLED_PLUGINS[@]}..."
     for plugin in "${ENABLED_PLUGINS[@]}"; do
-        # Compile main plugin file
+        # Check in standard plugins directory
         if [[ -f "$ZSH/plugins/$plugin/$plugin.plugin.zsh" ]]; then
             zcompile "$ZSH/plugins/$plugin/$plugin.plugin.zsh"
+            # Compile any other .zsh files in the plugin directory
+            for file in "$ZSH/plugins/$plugin"/*.zsh(N); do
+                [[ -f "$file" ]] && zcompile "$file"
+            done
+        # Check in custom plugins directory
+        elif [[ -f "$ZSH_CUSTOM/plugins/$plugin/$plugin.plugin.zsh" ]]; then
+            zcompile "$ZSH_CUSTOM/plugins/$plugin/$plugin.plugin.zsh"
+            # Compile any other .zsh files in the custom plugin directory
+            for file in "$ZSH_CUSTOM/plugins/$plugin"/*.zsh(N); do
+                [[ -f "$file" ]] && zcompile "$file"
+            done
         fi
-        
-        # Compile any other .zsh files in the plugin directory
-        for file in "$ZSH/plugins/$plugin"/*.zsh(N); do
-            [[ -f "$file" ]] && zcompile "$file"
-        done
     done
 fi
 
