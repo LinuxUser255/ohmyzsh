@@ -84,6 +84,16 @@ build_zsh_from_source() {
         echo "[ERROR] make failed"
         return 1
     fi
+    
+    # Explicitly build modules
+    echo "[INFO] Building modules..."
+    if ! make modules; then
+        echo "[WARNING] Module build failed, trying alternative approach"
+        # Try to build in the Src/Modules directory
+        if [[ -d "Src/Modules" ]]; then
+            cd Src/Modules && make && cd ../..
+        fi
+    fi
 
     # Run tests (optional, continue even if some tests fail)
     if [[ "${SKIP_TESTS:-0}" == "1" ]]; then
@@ -102,10 +112,46 @@ build_zsh_from_source() {
         echo "[ERROR] Installation failed"
         return 1
     fi
+    
+    # Explicitly install modules
+    echo "[INFO] Installing modules..."
+    if ! make install.modules; then
+        echo "[WARNING] Module installation via make failed, trying manual install"
+        
+        # Find and install modules manually if needed
+        local zsh_version="5.9.0.3-test"  # This should match your build
+        local module_dest="/usr/lib/zsh/${zsh_version}/zsh"
+        
+        echo "[INFO] Creating module directory: $module_dest"
+        mkdir -p "$module_dest"
+        
+        # Find all .so files in the build directory and copy them
+        if [[ -d "Src/Modules" ]]; then
+            echo "[INFO] Copying modules from Src/Modules"
+            find Src/Modules -name "*.so" -exec cp {} "$module_dest/" \;
+        fi
+        
+        if [[ -d "Src/Zle" ]]; then
+            echo "[INFO] Copying modules from Src/Zle"
+            find Src/Zle -name "*.so" -exec cp {} "$module_dest/" \;
+        fi
+        
+        if [[ -d "Src/Builtins" ]]; then
+            echo "[INFO] Copying modules from Src/Builtins"
+            find Src/Builtins -name "*.so" -exec cp {} "$module_dest/" \;
+        fi
+        
+        # Set proper permissions
+        chmod -R 755 "$module_dest"
+    fi
 
     # Update dynamic linker cache
     echo "[INFO] Updating dynamic linker cache..."
-    ldconfig
+    if command -v ldconfig &>/dev/null; then
+        ldconfig
+    else
+        echo "[WARNING] ldconfig not found, skipping"
+    fi
 
     # Verify installation
     if ! command -v zsh &>/dev/null; then
