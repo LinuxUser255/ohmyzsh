@@ -86,9 +86,14 @@ build_zsh_from_source() {
     fi
 
     # Run tests (optional, continue even if some tests fail)
-    echo "[INFO] Running tests..."
-    if ! make check; then
-        echo "[WARNING] Some tests failed, but continuing installation"
+    if [[ "${SKIP_TESTS:-0}" == "1" ]]; then
+        echo "[INFO] Skipping tests (SKIP_TESTS=1)"
+    else
+        echo "[INFO] Running tests (this can take 10-20 minutes)..."
+        echo "[INFO] To skip tests, run with: SKIP_TESTS=1 sudo bash build_zsh_improved.sh"
+        if ! make check; then
+            echo "[WARNING] Some tests failed, but continuing installation"
+        fi
     fi
 
     # Install

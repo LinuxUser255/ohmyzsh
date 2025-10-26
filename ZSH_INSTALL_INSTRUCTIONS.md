@@ -19,7 +19,11 @@ This guide covers building and testing a customized zsh installation from the fo
 
 2. **Run the zsh build script:**
    ```bash
+   # Full build with tests (takes 15-20 minutes)
    sudo bash build_zsh_improved.sh
+   
+   # OR skip tests for faster build (recommended)
+   SKIP_TESTS=1 sudo bash build_zsh_improved.sh
    ```
 
    The script will:
