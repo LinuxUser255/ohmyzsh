@@ -22,7 +22,7 @@ Twitter), and join us on [Discord](https://discord.gg/ohmyzsh).
 [![Mastodon Follow](https://img.shields.io/mastodon/follow/111169632522566717?label=%40ohmyzsh&domain=https%3A%2F%2Fmstdn.social&logo=mastodon&style=flat)](https://mstdn.social/@ohmyzsh)
 [![Discord server](https://img.shields.io/discord/642496866407284746)](https://discord.gg/ohmyzsh)
 
-## 🚀 Performance Optimizations
+# 🚀 Performance Optimizations
 
 This fork includes several performance optimizations that significantly improve shell startup time:
 
