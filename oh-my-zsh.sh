@@ -214,7 +214,6 @@ fi
 if [[ -f "$ZSH/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh" ]]; then
   source "$ZSH/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
 fi
-
 # Load all of your custom configurations from custom/
 for config_file ("$ZSH_CUSTOM"/*.zsh(N)); do
   source "$config_file"

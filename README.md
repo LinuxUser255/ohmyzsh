@@ -38,7 +38,6 @@ This fork includes several performance optimizations that significantly improve 
 - With compiled files: 50-150ms startup time
 
 For detailed information about these optimizations and how to maximize performance, see the [OPTIMIZATION_GUIDE.md](OPTIMIZATION_GUIDE.md).
-
 <details>
 <summary>Table of Contents</summary>
 
