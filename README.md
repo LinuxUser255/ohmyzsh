@@ -27,7 +27,7 @@ Twitter), and join us on [Discord](https://discord.gg/ohmyzsh).
 <br>
 <br>
 
-## 🚀 Performance Optimizations
+#  Performance Optimization Edition! Faster, lighter, and comes with syntax higlighting and auto complete.
 
 This fork includes several performance optimizations that significantly improve shell startup time:
 

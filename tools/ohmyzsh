@@ -1,0 +1,72 @@
+#!/usr/bin/env zsh
+
+# ohmyzsh command - Show version information for the speed-enhanced fork
+
+# Find the Oh My Zsh installation directory
+# First check if we're in an Oh My Zsh directory
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ -f "$SCRIPT_DIR/.omz-fork-version" ]]; then
+  OMZ_DIR="$SCRIPT_DIR"
+elif [[ -n "$ZSH" ]]; then
+  OMZ_DIR="$ZSH"
+elif [[ -d "$HOME/.oh-my-zsh" ]]; then
+  OMZ_DIR="$HOME/.oh-my-zsh"
+elif [[ -d "$HOME/.config/oh-my-zsh" ]]; then
+  OMZ_DIR="$HOME/.config/oh-my-zsh"
+else
+  echo "Error: Oh My Zsh installation not found"
+  exit 1
+fi
+
+# Handle --version flag
+if [[ "$1" == "--version" ]] || [[ "$1" == "-v" ]]; then
+  if [[ -f "$OMZ_DIR/.omz-fork-version" ]]; then
+    # Show speed-enhanced fork version
+    echo -e "\033[1;32m[SPEED-ENHANCED] Oh My Zsh Fork\033[0m"
+    echo ""
+    # Read and display first 3 lines of version info (fork, type, version)
+    head -n 4 "$OMZ_DIR/.omz-fork-version" | tail -n 3 | while IFS= read -r line; do
+      # Clean up JSON formatting for display
+      if echo "$line" | grep -q '"fork"'; then
+        value=$(echo "$line" | cut -d'"' -f4)
+        echo "Fork: $value"
+      elif echo "$line" | grep -q '"type"'; then
+        value=$(echo "$line" | cut -d'"' -f4)
+        echo "Type: $value"
+      elif echo "$line" | grep -q '"version"'; then
+        value=$(echo "$line" | cut -d'"' -f4)
+        echo "Version: $value"
+      fi
+    done
+    
+    # Get git commit info
+    if command -v git &>/dev/null && [[ -d "$OMZ_DIR/.git" ]]; then
+      cd "$OMZ_DIR" 2>/dev/null
+      commit=$(git rev-parse --short HEAD 2>/dev/null)
+      branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "detached")
+      echo "Branch: $branch ($commit)"
+    fi
+  else
+    # Show original version
+    echo -e "\033[1;33m[ORIGINAL] Oh My Zsh\033[0m"
+    if command -v git &>/dev/null && [[ -d "$OMZ_DIR/.git" ]]; then
+      cd "$OMZ_DIR" 2>/dev/null
+      commit=$(git rev-parse --short HEAD 2>/dev/null)
+      branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "detached")
+      echo "Branch: $branch ($commit)"
+    fi
+    echo ""
+    echo "Note: This appears to be the original Oh My Zsh or the version file is missing."
+    echo "Run 'omz version init' from within your shell to create the version file."
+  fi
+elif [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ -z "$1" ]]; then
+  echo "ohmyzsh - Oh My Zsh speed-enhanced fork utility"
+  echo ""
+  echo "Usage:"
+  echo "  ohmyzsh --version    Show version information"
+  echo "  ohmyzsh --help       Show this help message"
+else
+  echo "Unknown option: $1"
+  echo "Try 'ohmyzsh --help' for more information."
+  exit 1
+fi

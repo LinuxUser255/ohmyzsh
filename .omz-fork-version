@@ -1,0 +1,13 @@
+{
+  "fork": "LinuxUser255/ohmyzsh",
+  "type": "speed-enhanced",
+  "version": "1.0.0",
+  "features": [
+    "removed duplicate compinit calls",
+    "disabled automatic update checks",
+    "async git prompt enabled",
+    "optimized plugin loading",
+    "compilation support"
+  ],
+  "original": "ohmyzsh/ohmyzsh"
+}

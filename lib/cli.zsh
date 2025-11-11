@@ -911,6 +911,12 @@ function _omz::update {
 }
 
 function _omz::version {
+  # Handle subcommands
+  if [[ "$1" == "init" ]]; then
+    _omz::version::init
+    return $?
+  fi
+  
   (
     builtin cd -q "$ZSH"
 
@@ -927,7 +933,67 @@ function _omz::version {
     # Get short hash for the current HEAD
     local commit=$(command git rev-parse --short HEAD 2>/dev/null)
 
-    # Show version and commit hash
-    printf "%s (%s)\n" "$version" "$commit"
+    # Check if this is the speed-enhanced fork
+    if [[ -f "$ZSH/.omz-fork-version" ]]; then
+      # Parse fork information
+      local fork_info=$(cat "$ZSH/.omz-fork-version" 2>/dev/null)
+      local fork_type=$(echo "$fork_info" | grep '"type"' | cut -d'"' -f4)
+      local fork_version=$(echo "$fork_info" | grep '"version"' | cut -d'"' -f4)
+      local fork_name=$(echo "$fork_info" | grep '"fork"' | cut -d'"' -f4)
+      
+      # Display enhanced version information
+      printf "\033[1;32m[SPEED-ENHANCED] Oh My Zsh Fork\033[0m\n"
+      printf "Fork: %s (v%s)\n" "$fork_name" "$fork_version"
+      printf "Branch: %s (%s)\n" "$version" "$commit"
+      printf "Type: %s\n" "$fork_type"
+      
+      # Show performance optimizations
+      printf "\n\033[1;34mPerformance Optimizations:\033[0m\n"
+      printf "  + Removed duplicate compinit calls\n"
+      printf "  + Disabled automatic update checks\n"
+      printf "  + Async git prompt enabled\n"
+      printf "  + Optimized plugin loading\n"
+      printf "  + Compilation support\n"
+    else
+      # Original Oh My Zsh version
+      printf "\033[1;33m[ORIGINAL] Oh My Zsh\033[0m\n"
+      printf "Version: %s (%s)\n" "$version" "$commit"
+      
+      # Check remote URL to confirm
+      local remote_url=$(command git remote get-url origin 2>/dev/null)
+      if [[ "$remote_url" == *"ohmyzsh/ohmyzsh"* ]]; then
+        printf "Repository: Official (ohmyzsh/ohmyzsh)\n"
+      elif [[ "$remote_url" == *"LinuxUser255/ohmyzsh"* ]]; then
+        printf "Repository: LinuxUser255 fork (missing version file)\n"
+        printf "\033[0;31mWarning: Fork version file not found. Run 'omz version init' to create it.\033[0m\n"
+      else
+        printf "Repository: %s\n" "$remote_url"
+      fi
+    fi
   )
+}
+
+function _omz::version::init {
+  # Create version file for speed-enhanced fork
+  if [[ ! -f "$ZSH/.omz-fork-version" ]]; then
+    cat > "$ZSH/.omz-fork-version" <<'EOF'
+{
+  "fork": "LinuxUser255/ohmyzsh",
+  "type": "speed-enhanced",
+  "version": "1.0.0",
+  "features": [
+    "removed duplicate compinit calls",
+    "disabled automatic update checks",
+    "async git prompt enabled",
+    "optimized plugin loading",
+    "compilation support"
+  ],
+  "original": "ohmyzsh/ohmyzsh"
+}
+EOF
+    _omz::log info "Version file created successfully."
+    _omz::log info "Run 'omz version' to see the enhanced version information."
+  else
+    _omz::log warn "Version file already exists."
+  fi
 }
